@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>p5 Orbit Control</title>
+  <!-- <script src="./js/mathjax-config.js" defer></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js"> -->
+  </script>
+  <script src="./libraries/p5.min.js"></script>
+  <!-- <script src="./libraries/p5.sound.js"></script> -->
+  <script src="./js/p5.videorecorder.js"></script>
+  <!-- <script src="./libraries/easyCam.min.js"></script> -->
+  <!-- <script src="./js/main.js" type="module"></script> -->
+</head>
+
+<body>
+
+  <script>
+
+    let videoRecorder;
+
+    function setup() {
+      createCanvas(400, 400);
+      colorMode(HSB);
+      noLoop();
+
+      //  Create a new VideoRecorder instance
+      //    defaults to recording the canvas
+      videoRecorder = new p5.VideoRecorder();
+      //  Set callback for when recording is completed
+      //    and video file has been created
+      videoRecorder.onFileReady = showAndSaveVideo;
+    }
+
+    function draw() {
+      background(frameCount, 100, 100);
+      //  If 360 frames have passed
+      if (frameCount === 360) {
+        //  Stop recording
+        videoRecorder.stop();
+      } else if (frameCount === 1) {
+        fill(0);
+        rect(100, 100, 200, 200, 20);
+        fill(255);
+        textSize(32);
+        textAlign(CENTER);
+        text("Click to start recording!", 120, 120, 160, 160);
+      }
+    }
+
+    function showAndSaveVideo() {
+      //  Get url of recorded video
+      let videoURL = videoRecorder.url;
+      //  Create video player element with recording as source
+      let vid = createVideo(videoURL);
+      vid.showControls();
+      //  Download the recording
+      videoRecorder.save("myVideo");
+    }
+
+    function mousePressed() {
+      //  Start recording
+      videoRecorder.start();
+      loop();
+    }
+
+  </script>
+
+</body>
+
+</html>

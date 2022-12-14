@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>p5 Orbit Control</title>
+  <!-- <script src="./js/mathjax-config.js" defer></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js">
+  </script>-->
+
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.sound.min.js">
+  </script> -->
+
+
+  <script src="./libraries/p5.min.js"></script>
+
+  <!-- <script src="./libraries/p5.sound.min.js"></script> -->
+
+
+  <script src="./js/p5.videorecorder.js"></script>
+
+  <script src="./libraries/easyCam.min.js"></script>
+
+
+  <script src="./js/main.js" type="module"></script>
+</head>
+
+<body>
+  <div id="p5Wrapper" style="display: flex; flex-direction: column; width:100vw; height:100vh;">
+    <div id='container-figure' style="margin: 0 auto; width: 100%; height: 100%; background-color: beige;"></div>
+    <div class="buttons" style="display: flex;">
+      <button onClick="window.playLorenz()"
+        style="position: absolute; right: 5px; bottom:400px; background-color: lightblue;">Play Lorenz</button>
+      <!-- <button onClick="window.stopVideo()" style="position: absolute; right:20px; bottom:200px;">
+        Stop Record</button>
+      <button onClick="window.recording()" style="position: absolute; right:20px; bottom:100px;"> Record Video</button> -->
+    </div>
+  </div>
+
+
+</body>
+
+</html>
