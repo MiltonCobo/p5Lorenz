@@ -24,12 +24,12 @@ export default function lorenz(p) {
   let trajectoryFall = false;
   let trajectoryWiggle = false;
   let showTrajectory = true;
-  let music;
+  let audio;
 
-  // p.preload = function () {
-  //   // p.soundFormats('mp3', 'ogg');
-  //   music = p.loadSound('./Lorenz-music.mp3');
-  // };
+  p.preload = function () {
+    //p.soundFormats('mp3', 'ogg');
+    audio = p.loadSound('localhost/sound/Lorenz-audio.mp3');
+  };
 
   p.setup = function () {
     makeTitleAndButtons();
@@ -196,22 +196,23 @@ export default function lorenz(p) {
 
     //----------playMusic button------
 
-    // let playMusic = p
-    //   .createButton('Musica')
-    //   .parent('container-figure')
-    //   .style('background-color: lightblue;')
-    //   .position(0.9 * figura.width, 0.7 * figura.height);
+    let playMusic = p
+      .createButton('Musica')
+      .parent('container-figure')
+      .style('background-color: lightblue;')
+      .position(0.9 * figura.width, 0.7 * figura.height);
 
-    // playMusic.mousePressed(() => {
-    //   toggleMusic = !toggleMusic;
-    //   if (toggleMusic) {
-    //     music.play();
-    //   } else {
-    //     music.stop();
-    //   }
+    playMusic.mousePressed(() => {
+      toggleMusic = !toggleMusic;
+      if (toggleMusic) {
+        // audio.volume(0.3);
+        audio.play();
+      } else {
+        audio.stop();
+      }
 
-    //p.loop();
-    //};
+      p.loop();
+    });
   }
 
   function recording() {
