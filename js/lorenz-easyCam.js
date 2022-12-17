@@ -1,7 +1,7 @@
 //import VideoRecorder from './p5.recorder.js';
 
 export default function lorenz(p) {
-  const maxIterations = 3000; // numero total de iteracoes antes de mudar ponto inicial
+  const maxIterations = 2000; // numero total de iteracoes antes de mudar ponto inicial
   const angleCam = p.PI / 3;
   const dt = 0.0036; // increment to calculate new points of trajectory. Ending in periodic orbits?....
 
@@ -22,8 +22,8 @@ export default function lorenz(p) {
   let currentPoint;
   let lorenzPoints = [];
   let trajectoryFall = false;
-  let trajectoryWiggle = false;
-  let showTrajectory = true;
+  let wiggleTrajectory = false;
+  let trajectory_restarted = false;
   let audio;
   let mic;
 
@@ -117,9 +117,7 @@ export default function lorenz(p) {
 
     //p.orbitControl();  // not really working.....
 
-    count++;
-
-    if (trajectoryWiggle) {
+    if (wiggleTrajectory) {
       trajectory.wiggle();
       trajectory.show();
     }
@@ -131,38 +129,40 @@ export default function lorenz(p) {
     //acelera plot
     let rate = Math.floor(p.map(count, 0, maxIterations, 1, 6));
 
-    if (showTrajectory) {
-      let [x, y, z] = [currentPoint.x, currentPoint.y, currentPoint.z];
-      // if showTrajectory is true add next point
-      for (let i = 0; i < rate; i++) {
-        let dx = a * (y - x) * dt; //  Equations of Lorenz
-        let dy = (x * (b - z) - y) * dt;
-        let dz = (x * y - c * z) * dt;
-        x = x + dx;
-        y = y + dy;
-        z = z + dz;
-        currentPoint = new p5.Vector(x, y, z); // new current position
-        lorenzPoints.push(currentPoint);
-      }
+    let [x, y, z] = [currentPoint.x, currentPoint.y, currentPoint.z];
+
+    for (let i = 0; i < rate; i++) {
+      let dx = a * (y - x) * dt; //  Equations of Lorenz
+      let dy = (x * (b - z) - y) * dt;
+      let dz = (x * y - c * z) * dt;
+      x = x + dx;
+      y = y + dy;
+      z = z + dz;
+      currentPoint = new p5.Vector(x, y, z); // new current position
+      lorenzPoints.push(currentPoint);
+      trajectory.points = lorenzPoints;
+      count++;
     }
 
     if (count > 2000 && count % 3 == 0) {
-      lorenzPoints.shift(); // after 2000 points we remove a point every 5 counts
+      lorenzPoints.shift(); // after 2000 points we remove a point every 3 counts
+    }
+
+    if (count > maxIterations) {
+      trajectory.restart();
+      //trajectory_restarted = true; // the first iteration is skipped
     }
 
     drawAxes(70, 1); // coloca os eixos comprim=70, asas das setas = 6
     drawfloorplane(70);
 
-    if (count > maxIterations) {
-      reshowTrajectory();
-    }
     p.colorMode(p.HSB, 100);
     for (let i = 0; i < lorenzPoints.length; i += 200) {
       // change color every 200 points
       trajectory.points = lorenzPoints.slice(i); // take 200 points each time and draw in random color
       p.push();
-      p.stroke(i % 360, 100, 100);
-      p.strokeWeight(0.6);
+      p.stroke(i % 237, 80, 80);
+      p.strokeWeight(0.8);
 
       if (trajectoryFall) {
         trajectory.fall();
@@ -273,18 +273,18 @@ export default function lorenz(p) {
 
   p.mouseOver = function () {
     if (p.dist(p.mouseX, p.mouseY, p.width / 2, p.height / 2) < 200) {
-      trajectoryWiggle = true;
+      wiggleTrajectory = true;
     } else {
-      trajectoryWiggle = false;
+      wiggleTrajectory = false;
     }
   };
 
   p.doubleClicked = function () {
     trajectoryFall = !trajectoryFall;
-    showTrajectory = !showTrajectory;
+    trajectory_restarted = !trajectory_restarted;
 
-    if (showTrajectory) {
-      reshowTrajectory();
+    if (trajectory_restarted) {
+      trajectory.restart();
     }
 
     // if (p.dist(p.mouseX, p.mouseY, p.width / 2, p.height / 2) < 200) {
@@ -302,15 +302,26 @@ export default function lorenz(p) {
   //---------------------------END REACTIVITY -----------------------------;
 
   class Trajectory {
+    #points;
+
     constructor(points) {
-      this.points = points;
+      this.#points = points;
+    }
+
+    get points() {
+      return this.#points;
+    }
+
+    set points(points) {
+      this.#points = points;
+      return this;
     }
 
     show() {
       p.noFill();
       //p.fill(bgColor); // mostra atrator principal
       p.beginShape();
-      for (let v of this.points) {
+      for (let v of this.#points) {
         p.vertex(v.x, v.y, v.z);
         // let offset = p5.Vector.random3D();
         // offset.mult(0.1);
@@ -325,7 +336,7 @@ export default function lorenz(p) {
       p.stroke('yellow');
       p.strokeWeight(0.3);
 
-      for (let v of this.points) {
+      for (let v of this.#points) {
         if (v.z > 0) {
           v.z -= 0.6;
           // v.x +=random(-0.05,0.05);
@@ -340,11 +351,21 @@ export default function lorenz(p) {
     wiggle() {
       //
       p.push();
-      for (let v of this.points) {
+      for (let v of this.#points) {
         v.x += p.random(-0.3, 0.3);
         v.y += p.random(-0.3, 0.3);
       }
       p.pop();
+    }
+
+    restart() {
+      p.noLoop();
+      currentPoint = initial_random();
+      lorenzPoints = []; // reinicia points
+      count = 0; // reinicia countador
+      this.points = lorenzPoints;
+      lorenzPoints.push(currentPoint);
+      p.loop();
     }
   } // end trajectory
 
@@ -409,11 +430,11 @@ export default function lorenz(p) {
     p.pop();
   }
 
-  function reshowTrajectory() {
-    lorenzPoints = []; // reinicia points
+  // function retrajectory_restarted() {
+  //   lorenzPoints = []; // reinicia points
 
-    let currentPoint = initial_random();
-    lorenzPoints.push(currentPoint);
-    count = 0; // reinicia countador
-  }
+  //   let currentPoint = initial_random();
+  //   lorenzPoints.push(currentPoint);
+  //   count = 0; // reinicia countador
+  // }
 }
