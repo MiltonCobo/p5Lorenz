@@ -3,7 +3,7 @@
 export default function lorenz(p) {
   const maxIterations = 3000; // numero total de iteracoes antes de mudar ponto inicial
   const angleCam = p.PI / 3;
-  const dt = 0.004; // increment to calculate new points of trajectory. Ending in periodic orbits?....
+  const dt = 0.0036; // increment to calculate new points of trajectory. Ending in periodic orbits?....
 
   const a = 10;
   const b = 99.96; // parameters of Lorenz
@@ -25,14 +25,25 @@ export default function lorenz(p) {
   let trajectoryWiggle = false;
   let showTrajectory = true;
   let audio;
+  let mic;
 
   p.preload = function () {
-    //p.soundFormats('mp3', 'ogg');
-    audio = p.loadSound('localhost/sound/Lorenz-audio.mp3');
+    p.soundFormats('mp3', 'ogg');
+    // audio = p.loadSound('http://localhost:5500/sound/aSerene.mp3');
+    /* To play the music, it was necessary to use http://localhost:5500 as prefix */
+    audio = p.loadSound(
+      'http://192.168.15.15:5500/sound/aSerene.mp3',
+      () => audio.loop() // callback. Play the music in localhost but in remote machine it is not playing
+    );
+
+    // this address is working on the web, but in the local machine should use localhost:5500
   };
 
   p.setup = function () {
     makeTitleAndButtons();
+
+    mic = new p5.AudioIn(); // microphone object
+    // audio.loop();
 
     p.frameRate(30);
     p.setAttributes({ alpha: true, antialias: false }); // set WEBGL attribute before myCanvas....alpha channel for transparency. THIS SHOULD BE SET BEFORE THE CANVAS IS CREATED!
@@ -54,7 +65,11 @@ export default function lorenz(p) {
 
     //---video recorder-------
 
-    videoRecorder = new p5.VideoRecorder(myCanvas);
+    videoRecorder = new p5.VideoRecorder([
+      mic.output,
+      myCanvas.elt,
+      audio.output,
+    ]);
     videoRecorder.onFileReady = showAndSaveVideo;
 
     // set camera---------------
@@ -74,10 +89,10 @@ export default function lorenz(p) {
 
     p.angleMode(p.RADIANS); // p.angleMode(p.DEGREES);
 
-    p.colorMode(p.HSB, 100); // color mode hue, saturation, bright
+    // color mode hue, saturation, bright
 
-    bgColor = p.color(100);
-    bgColor.setAlpha(0); // set transparency color
+    bgColor = p.color(240, 248, 255); // background color, alice blue in RGB
+    bgColor.setAlpha(0); // set transparency color....no background color
     p.background(bgColor); // transparent background
 
     currentPoint = initial_random(); // initial point of trajectory
@@ -109,8 +124,6 @@ export default function lorenz(p) {
       trajectory.show();
     }
 
-    //p.clear();
-
     //-------faz o titulo como testura sobre um plano------
     // titlebox.texture(tela_textura);
     // titlebox.plane(400, 100);
@@ -133,7 +146,7 @@ export default function lorenz(p) {
       }
     }
 
-    if (count > 2000 && count % 5 == 0) {
+    if (count > 2000 && count % 3 == 0) {
       lorenzPoints.shift(); // after 2000 points we remove a point every 5 counts
     }
 
@@ -143,7 +156,7 @@ export default function lorenz(p) {
     if (count > maxIterations) {
       reshowTrajectory();
     }
-
+    p.colorMode(p.HSB, 100);
     for (let i = 0; i < lorenzPoints.length; i += 200) {
       // change color every 200 points
       trajectory.points = lorenzPoints.slice(i); // take 200 points each time and draw in random color
@@ -205,8 +218,10 @@ export default function lorenz(p) {
     playMusic.mousePressed(() => {
       toggleMusic = !toggleMusic;
       if (toggleMusic) {
-        // audio.volume(0.3);
-        audio.play();
+        audio.loop();
+        audio.amp(0.3);
+      } else if (videoRecorder.recording) {
+        console.error("Recording....music couldn't  stop.....");
       } else {
         audio.stop();
       }
@@ -217,12 +232,16 @@ export default function lorenz(p) {
 
   function recording() {
     console.log('%c....GRAVANDO....', 'color: red; font-size: 30px;');
+    mic.start();
+    // audio.loop();
     videoRecorder.start();
     gravando.style('display: inline-block');
     //p.loop();
   }
 
   function stopVideo() {
+    mic.stop();
+    // audio.stop();
     videoRecorder.stop();
     gravando.style('display: none');
     //p.noLoop();
@@ -332,10 +351,10 @@ export default function lorenz(p) {
   function drawAxes(L, radius) {
     // made the axes
 
-    //p.normalMaterial();
+    p.normalMaterial();
     // yaxis-----------
     //yaxis by definition points downwards as positive, like 2D myCanvas
-    p.stroke('lightgreen'); // coloring axis to see them better
+    //p.stroke('lightgreen'); // coloring axis to see them better
     p.push();
     p.translate(0, L / 2, 0);
     p.cylinder(radius, L);
@@ -350,7 +369,7 @@ export default function lorenz(p) {
     p.pop();
 
     //xaxis -------------
-    p.stroke('lightblue');
+    //p.stroke('lightblue');
     p.push();
     p.translate(L / 2, 0, 0);
     p.rotateZ(-p.PI / 2);
@@ -367,7 +386,7 @@ export default function lorenz(p) {
     //p.ambientMaterial(128, 128, 128);
     //p.stroke('lightpink');
     p.push();
-    p.normalMaterial();
+    // p.normalMaterial();
     p.translate(0, 0, L / 2);
     p.rotateX(p.PI / 2);
     p.cylinder(radius, L);
