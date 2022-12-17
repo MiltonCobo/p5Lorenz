@@ -1,9 +1,10 @@
 //import VideoRecorder from './p5.recorder.js';
 
 export default function lorenz(p) {
-  const maxIterations = 2000; // numero total de iteracoes antes de mudar ponto inicial
+  const maxIterations = 4000; // numero total de iteracoes antes de mudar ponto inicial
   const angleCam = p.PI / 3;
   const dt = 0.0036; // increment to calculate new points of trajectory. Ending in periodic orbits?....
+  const chunkSize = 20;
 
   const a = 10;
   const b = 99.96; // parameters of Lorenz
@@ -32,7 +33,7 @@ export default function lorenz(p) {
     // audio = p.loadSound('http://localhost:5500/sound/aSerene.mp3');
     /* To play the music, it was necessary to use http://localhost:5500 as prefix */
     audio = p.loadSound(
-      'http://192.168.15.15:5500/sound/aSerene.mp3',
+      '/sound/aSerene.mp3', //http://192.168.15.15:5500
       () => audio.loop() // callback. Play the music in localhost but in remote machine it is not playing
     );
 
@@ -57,7 +58,6 @@ export default function lorenz(p) {
     // let container = document.getElementById('container-figure');
     // let width = container.getBoundingClientRect().width; // save initial values of width,height
     // let height = container.getBoundingClientRect().height;
-    // console.log('container2= ', container2);
     let container = p.select('#container-figure');
 
     let myCanvas = p.createCanvas(container.width, container.height, p.WEBGL);
@@ -144,22 +144,24 @@ export default function lorenz(p) {
       count++;
     }
 
-    if (count > 2000 && count % 3 == 0) {
-      lorenzPoints.shift(); // after 2000 points we remove a point every 3 counts
+    if (count > maxIterations / 2 && count % 3 == 0) {
+      lorenzPoints.shift(); // after maxIterations/2 points we remove a point every 3 counts
     }
 
     if (count > maxIterations) {
       trajectory.restart();
-      //trajectory_restarted = true; // the first iteration is skipped
     }
 
     drawAxes(70, 1); // coloca os eixos comprim=70, asas das setas = 6
     drawfloorplane(70);
 
     p.colorMode(p.HSB, 100);
-    for (let i = 0; i < lorenzPoints.length; i += 200) {
-      // change color every 200 points
-      trajectory.points = lorenzPoints.slice(i); // take 200 points each time and draw in random color
+
+    let residue = lorenzPoints.length % chunkSize;
+    let numSteps = Math.floor(lorenzPoints.length / chunkSize);
+
+    for (let i = 0; i <= numSteps; i++) {
+      //trajectory.points = lorenzPoints.slice(i);
       p.push();
       p.stroke(i % 237, 80, 80);
       p.strokeWeight(0.8);
@@ -167,7 +169,10 @@ export default function lorenz(p) {
       if (trajectoryFall) {
         trajectory.fall();
       }
-      trajectory.show();
+      let begin = Math.max(i * chunkSize, 1);
+      let end = Math.min((i + 1) * chunkSize, trajectory.points.length);
+
+      trajectory.show(begin - 1, end); // take chunkSize points each time and draw in random color
 
       let long = trajectory.points.length - 1;
       let pfinal = trajectory.points[long];
@@ -317,11 +322,13 @@ export default function lorenz(p) {
       return this;
     }
 
-    show() {
+    show(begin = 0, end = -1) {
+      let points = this.#points.slice(begin, end);
+
       p.noFill();
       //p.fill(bgColor); // mostra atrator principal
       p.beginShape();
-      for (let v of this.#points) {
+      for (let v of points) {
         p.vertex(v.x, v.y, v.z);
         // let offset = p5.Vector.random3D();
         // offset.mult(0.1);
