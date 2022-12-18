@@ -33,7 +33,7 @@ export default function lorenz(p) {
     // audio = p.loadSound('http://localhost:5500/sound/aSerene.mp3');
     /* To play the music, it was necessary to use http://localhost:5500 as prefix */
     audio = p.loadSound(
-      './sound/aSerene.mp3', //http://192.168.15.15:5500
+      '/sound/aSerene.mp3', //http://192.168.15.15:5500
       () => audio.loop() // callback. Play the music in localhost but in remote machine it is not playing
     );
 
@@ -153,9 +153,13 @@ export default function lorenz(p) {
     }
 
     drawAxes(70, 1); // coloca os eixos comprim=70, asas das setas = 6
-    drawfloorplane(70);
+    drawFloorPlane(70);
 
-    p.colorMode(p.HSB, 100);
+    p.colorMode(p.HSB);
+    /* H = hue, between 0-360. Red = 0, green =120, blue = 240
+    S = Saturation, 0% = grey version of color and 100% = rich version of color
+    B = brightness, 0% = black and 100% = white if saturation = 0%, otherwise it is the brightness version of color
+    */
 
     let residue = lorenzPoints.length % chunkSize;
     let numSteps = Math.floor(lorenzPoints.length / chunkSize);
@@ -163,7 +167,7 @@ export default function lorenz(p) {
     for (let i = 0; i <= numSteps; i++) {
       //trajectory.points = lorenzPoints.slice(i);
       p.push();
-      p.stroke(i % 67, 80, 80);
+      p.stroke(i % 360, 80, 50);
       p.strokeWeight(0.8);
 
       if (trajectoryFall) {
@@ -325,8 +329,9 @@ export default function lorenz(p) {
     show(begin = 0, end = -1) {
       let points = this.#points.slice(begin, end);
 
-      p.noFill();
-      //p.fill(bgColor); // mostra atrator principal
+      //p.normalMaterial();
+      p.noFill(); // mostra atrator principal
+
       p.beginShape();
       for (let v of points) {
         p.vertex(v.x, v.y, v.z);
@@ -427,21 +432,15 @@ export default function lorenz(p) {
     p.pop();
   }
 
-  function drawfloorplane(L) {
+  function drawFloorPlane(L) {
+    let floorColor = p.color(120, 20, 50);
+    floorColor.setAlpha(0.6);
     //p.normalMaterial();
     p.push();
     p.translate(0, 0, -1.5);
-    p.fill('#777');
+    p.fill(floorColor);
     p.noStroke();
     p.plane(2 * L + (2 * L) / 5, 2 * L + (2 * L) / 5); // chão plano xy
     p.pop();
   }
-
-  // function retrajectory_restarted() {
-  //   lorenzPoints = []; // reinicia points
-
-  //   let currentPoint = initial_random();
-  //   lorenzPoints.push(currentPoint);
-  //   count = 0; // reinicia countador
-  // }
 }
