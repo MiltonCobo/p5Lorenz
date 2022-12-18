@@ -167,7 +167,7 @@ export default function lorenz(p) {
     for (let i = 0; i <= numSteps; i++) {
       //trajectory.points = lorenzPoints.slice(i);
       p.push();
-      p.stroke(i % 360, 80, 50);
+      p.stroke((i*chunkSize + residue) % 360, 80, 50);
       p.strokeWeight(0.8);
 
       if (trajectoryFall) {
