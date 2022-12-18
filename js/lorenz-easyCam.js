@@ -1,10 +1,10 @@
 //import VideoRecorder from './p5.recorder.js';
 
 export default function lorenz(p) {
-  const maxIterations = 4000; // numero total de iteracoes antes de mudar ponto inicial
+  const maxIterations = 5000; // numero total de iteracoes antes de mudar ponto inicial
   const angleCam = p.PI / 3;
-  const dt = 0.0036; // increment to calculate new points of trajectory. Ending in periodic orbits?....
-  const chunkSize = 20;
+  const dt = 0.003; // increment to calculate new points of trajectory. Ending in periodic orbits?....
+  const chunkSize = 60;
 
   const a = 10;
   const b = 99.96; // parameters of Lorenz
@@ -163,16 +163,16 @@ export default function lorenz(p) {
     for (let i = 0; i <= numSteps; i++) {
       //trajectory.points = lorenzPoints.slice(i);
       p.push();
-      p.stroke(i % 237, 80, 80);
+      p.stroke(i % 67, 80, 80);
       p.strokeWeight(0.8);
 
       if (trajectoryFall) {
         trajectory.fall();
       }
-      let begin = Math.max(i * chunkSize, 1);
+      let begin = Math.max(i * chunkSize - 1, 1); // rest 1 to begin at the next point
       let end = Math.min((i + 1) * chunkSize, trajectory.points.length);
 
-      trajectory.show(begin - 1, end); // take chunkSize points each time and draw in random color
+      trajectory.show(begin, end); // take chunkSize points each time and draw in random color
 
       let long = trajectory.points.length - 1;
       let pfinal = trajectory.points[long];
@@ -431,7 +431,7 @@ export default function lorenz(p) {
     //p.normalMaterial();
     p.push();
     p.translate(0, 0, -1.5);
-    p.fill('#666');
+    p.fill('#777');
     p.noStroke();
     p.plane(2 * L + (2 * L) / 5, 2 * L + (2 * L) / 5); // chão plano xy
     p.pop();
