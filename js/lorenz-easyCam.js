@@ -434,7 +434,7 @@ export default function lorenz(p) {
 
   function drawFloorPlane(L) {
     let floorColor = p.color(120, 20, 50);
-    floorColor.setAlpha(0.6);
+    floorColor.setAlpha(0.8);
     //p.normalMaterial();
     p.push();
     p.translate(0, 0, -1.5);
