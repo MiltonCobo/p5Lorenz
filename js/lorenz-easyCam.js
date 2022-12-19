@@ -16,13 +16,14 @@ export default function lorenz(p) {
 
   let easyCam;
   let gravando; // paragraph indicating when is recording
+  let caindoReiniciar; // paragraph indicating when is falling
 
   let count = 0;
   let trajectory;
 
-  let trajectoryFall = false;
+  let isFalling = false;
   let wiggleTrajectory = false;
-  let trajectory_restarted = false;
+  let trajectory_restarted = true;
   let audio;
   let mic;
 
@@ -47,11 +48,17 @@ export default function lorenz(p) {
     p.frameRate(30);
     p.setAttributes({ alpha: true, antialias: false }); // set WEBGL attribute before myCanvas....alpha channel for transparency. THIS SHOULD BE SET BEFORE THE CANVAS IS CREATED!
 
-    gravando = p // paragraph showing if it is recording
-      .createP('...gravando...')
-      .style('color: red; display: none; font-size: 30px;')
-      .position(50, 30)
-      .parent('container-figure');
+    caindoReiniciar = createParagraph({
+      title: '...Clique duas vezes...',
+      position: [50, 30],
+      display: 'inline-block',
+    });
+
+    gravando = createParagraph({
+      title: '...Gravando...',
+      position: [50, 60],
+      display: 'none',
+    });
 
     // let container = document.getElementById('container-figure');
     // let width = container.getBoundingClientRect().width; // save initial values of width,height
@@ -157,9 +164,10 @@ export default function lorenz(p) {
       p.stroke((i * chunkSize + residue) % 360, 80, 50);
       p.strokeWeight(0.8);
 
-      if (trajectoryFall) {
+      if (isFalling) {
         trajectory.fall();
       }
+
       let begin = Math.max(i * chunkSize - 1, 1); // rest 1 to begin at the next point
       let end = Math.min((i + 1) * chunkSize, trajectory.points.length);
 
@@ -173,6 +181,14 @@ export default function lorenz(p) {
       p.pop();
     }
   }; //  ------end Draw()----------------------
+
+  function createParagraph(options) {
+    return p
+      .createP(options.title)
+      .style(`color: red;font-size: 30px; display: ${options.display};`)
+      .position(...options.position)
+      .parent('#container-figure');
+  }
 
   function makeTitleAndButtons() {
     let figura = p.select('#container-figure');
@@ -276,16 +292,17 @@ export default function lorenz(p) {
   };
 
   p.doubleClicked = function () {
-    trajectoryFall = !trajectoryFall;
+    isFalling = !isFalling;
     trajectory_restarted = !trajectory_restarted;
 
-    if (trajectory_restarted) {
+    if (trajectory_restarted && !isFalling) {
       trajectory.restart();
+      return;
     }
 
     // if (p.dist(p.mouseX, p.mouseY, p.width / 2, p.height / 2) < 200) {
-    //     trajectoryFall = !trajectoryFall;
-    // } //else {trajectoryFall = false}
+    //     isFalling = !isFalling;
+    // } //else {isFalling = false}
   };
 
   //----------------REACTIVITY----------------------------------------;
@@ -374,7 +391,7 @@ export default function lorenz(p) {
       p.noLoop();
       let currentPoint = initial_random();
       count = 0; // reinicia countador
-      this.#points = [currentPoint]; // reinicia points
+      this.points = [currentPoint]; // reinicia points
       p.loop();
     }
 
