@@ -33,7 +33,7 @@ export default function lorenz(p) {
     // audio = p.loadSound('http://localhost:5500/sound/aSerene.mp3');
     /* To play the music, it was necessary to use http://localhost:5500 as prefix */
     audio = p.loadSound(
-      '/sound/aSerene.mp3', //http://192.168.15.15:5500
+      './sound/aSerene.mp3', //http://192.168.15.15:5500
       () => audio.loop() // callback. Play the music in localhost but in remote machine it is not playing
     );
 
@@ -167,7 +167,7 @@ export default function lorenz(p) {
     for (let i = 0; i <= numSteps; i++) {
       //trajectory.points = lorenzPoints.slice(i);
       p.push();
-      p.stroke((i * chunkSize + residue) % 360, 80, 50);
+      p.stroke((i*chunkSize + residue) % 360, 80, 50);
       p.strokeWeight(0.8);
 
       if (trajectoryFall) {
