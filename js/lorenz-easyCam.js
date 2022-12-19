@@ -20,8 +20,6 @@ export default function lorenz(p) {
   let count = 0;
   let trajectory;
 
-  let currentPoint;
-  let lorenzPoints = [];
   let trajectoryFall = false;
   let wiggleTrajectory = false;
   let trajectory_restarted = false;
@@ -95,9 +93,8 @@ export default function lorenz(p) {
     bgColor.setAlpha(0); // set transparency color....no background color
     p.background(bgColor); // transparent background
 
-    currentPoint = initial_random(); // initial point of trajectory
-    lorenzPoints.push(currentPoint);
-    trajectory = new Trajectory(lorenzPoints);
+    let currentPoint = initial_random();
+    trajectory = new Trajectory([currentPoint]);
 
     //p.noLoop();
   };
@@ -129,23 +126,12 @@ export default function lorenz(p) {
     //acelera plot
     let rate = Math.floor(p.map(count, 0, maxIterations, 1, 6));
 
-    let [x, y, z] = [currentPoint.x, currentPoint.y, currentPoint.z];
-
     for (let i = 0; i < rate; i++) {
-      let dx = a * (y - x) * dt; //  Equations of Lorenz
-      let dy = (x * (b - z) - y) * dt;
-      let dz = (x * y - c * z) * dt;
-      x = x + dx;
-      y = y + dy;
-      z = z + dz;
-      currentPoint = new p5.Vector(x, y, z); // new current position
-      lorenzPoints.push(currentPoint);
-      trajectory.points = lorenzPoints;
-      count++;
+      trajectory.nextPoint();
     }
 
     if (count > maxIterations / 2 && count % 3 == 0) {
-      lorenzPoints.shift(); // after maxIterations/2 points we remove a point every 3 counts
+      trajectory.shiftPoints(); // after maxIterations/2 points we remove a point every 3 counts
     }
 
     if (count > maxIterations) {
@@ -161,13 +147,14 @@ export default function lorenz(p) {
     B = brightness, 0% = black and 100% = white if saturation = 0%, otherwise it is the brightness version of color
     */
 
-    let residue = lorenzPoints.length % chunkSize;
-    let numSteps = Math.floor(lorenzPoints.length / chunkSize);
+    let length = trajectory.points.length;
+    let residue = length % chunkSize;
+    let numSteps = Math.floor(length / chunkSize);
 
     for (let i = 0; i <= numSteps; i++) {
       //trajectory.points = lorenzPoints.slice(i);
       p.push();
-      p.stroke((i*chunkSize + residue) % 360, 80, 50);
+      p.stroke((i * chunkSize + residue) % 360, 80, 50);
       p.strokeWeight(0.8);
 
       if (trajectoryFall) {
@@ -321,8 +308,21 @@ export default function lorenz(p) {
       return this.#points;
     }
 
+    get currentPoint() {
+      return this.#points.slice(-1)[0];
+    }
+
+    set currentPoint(point) {
+      this.#points.push(point);
+    }
+
     set points(points) {
       this.#points = points;
+      return this;
+    }
+
+    shiftPoints() {
+      this.#points.shift();
       return this;
     }
 
@@ -372,12 +372,26 @@ export default function lorenz(p) {
 
     restart() {
       p.noLoop();
-      currentPoint = initial_random();
-      lorenzPoints = []; // reinicia points
+      let currentPoint = initial_random();
       count = 0; // reinicia countador
-      this.points = lorenzPoints;
-      lorenzPoints.push(currentPoint);
+      this.#points = [currentPoint]; // reinicia points
       p.loop();
+    }
+
+    nextPoint() {
+      let currentPoint = this.#points.slice(-1)[0]; // get the last element of this.#points
+
+      let [x, y, z] = [currentPoint.x, currentPoint.y, currentPoint.z];
+
+      let dx = a * (y - x) * dt; //  Equations of Lorenz
+      let dy = (x * (b - z) - y) * dt;
+      let dz = (x * y - c * z) * dt;
+      x = x + dx;
+      y = y + dy;
+      z = z + dz;
+      let nextPoint = new p5.Vector(x, y, z); // new current position
+      this.#points.push(nextPoint);
+      count++;
     }
   } // end trajectory
 
