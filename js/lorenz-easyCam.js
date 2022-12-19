@@ -167,7 +167,7 @@ export default function lorenz(p) {
     for (let i = 0; i <= numSteps; i++) {
       //trajectory.points = lorenzPoints.slice(i);
       p.push();
-      p.stroke(i % 360, 80, 50);
+      p.stroke((i * chunkSize + residue) % 360, 80, 50);
       p.strokeWeight(0.8);
 
       if (trajectoryFall) {
@@ -434,10 +434,10 @@ export default function lorenz(p) {
 
   function drawFloorPlane(L) {
     let floorColor = p.color(120, 20, 50);
-    floorColor.setAlpha(0.6);
+    floorColor.setAlpha(0.8);
     //p.normalMaterial();
     p.push();
-    p.translate(0, 0, -1.5);
+    p.translate(0, 0, -1);
     p.fill(floorColor);
     p.noStroke();
     p.plane(2 * L + (2 * L) / 5, 2 * L + (2 * L) / 5); // chão plano xy
