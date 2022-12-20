@@ -53,6 +53,7 @@ export default function lorenz(p) {
       title: '...Clique duas vezes...de novo...',
       position: [50, 30],
       display: 'inline-block',
+      fontSize: '25px',
     });
 
     gravando = createParagraph({
@@ -171,7 +172,7 @@ export default function lorenz(p) {
     let pfinal = trajectory.points[long]; // long = count
     p.push();
     p.translate(pfinal);
-    p.stroke('blue');
+    p.stroke('mediumblue');
     p.sphere(2); // plot blue sphere at the end
     p.pop();
 
@@ -183,15 +184,17 @@ export default function lorenz(p) {
     pfinal = trajectory2.points[long];
     p.push();
     p.translate(pfinal);
-    p.stroke('orange');
+    p.stroke('yellowgreen');
     p.sphere(2); // plot blue sphere at the end of 2nd trajectory
     p.pop();
   }; //  ------end Draw()----------------------
 
   function createParagraph(options) {
+    let fontSize = options.fontSize || '30px';
+    console.log(fontSize);
     return p
       .createP(options.title)
-      .style(`color: red;font-size: 30px; display: ${options.display};`)
+      .style(`color: red; font-size: ${fontSize}; display: ${options.display};`)
       .position(...options.position)
       .parent('#container-figure');
   }
@@ -207,11 +210,13 @@ export default function lorenz(p) {
     container.innerHTML = `<span style = "color : tomato; font-size: 40px; 
         position: absolute; left: 58%; top: 100px; 
         background-color: transparent">
-        Sala de Artes
+        O Atrator de Lorenz
         </span>
         <span style ="color : black; font-size: 20px;
         position: absolute; left: 58%; top: 150px;">
-        Semana Nacional de Ciência e Tecnologia (2022) 
+        Duas trajetórias do fluxo ilustrando o  fenômeno de </br>
+        <span style ="font-weight: bold;"> sensibilidade as condições iniciais.
+        </span>
         </span>`;
 
     function playMusic() {
