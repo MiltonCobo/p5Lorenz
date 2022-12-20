@@ -4,7 +4,7 @@ export default function lorenz(p) {
   const maxIterations = 5000; // numero total de iteracoes antes de mudar ponto inicial
   const angleCam = p.PI / 3;
   const dt = 0.003; // increment to calculate new points of trajectory. Ending in periodic orbits?....
-  const chunkSize = 60;
+  // const chunkSize = 60;
 
   const a = 10;
   const b = 99.96; // parameters of Lorenz
@@ -19,10 +19,10 @@ export default function lorenz(p) {
   let caindoReiniciar; // paragraph indicating when is falling
 
   let count = 0;
-  let trajectory;
+  let trajectory, trajectory2;
 
   let isFalling = false;
-  let wiggleTrajectory = false;
+  // let wiggleTrajectory = false;
   let trajectory_restarted = true;
   let audio;
   let mic;
@@ -33,7 +33,7 @@ export default function lorenz(p) {
     /* To play the music, it was necessary to use http://localhost:5500 as prefix */
     audio = p.loadSound(
       './sound/aSerene.mp3', //http://192.168.15.15:5500
-      () => audio.loop() // callback. Play the music in localhost but in remote machine it is not playing
+      () => {} //audio.loop() // callback. Play the music in localhost but in remote machine it is not playing
     );
 
     // this address is working on the web, but in the local machine should use localhost:5500
@@ -46,10 +46,11 @@ export default function lorenz(p) {
     // audio.loop();
 
     p.frameRate(30);
-    p.setAttributes({ alpha: true, antialias: false }); // set WEBGL attribute before myCanvas....alpha channel for transparency. THIS SHOULD BE SET BEFORE THE CANVAS IS CREATED!
+    p.setAttributes({ alpha: true, antialias: false }); // set WEBGL attribute before canvas....alpha channel for transparency. THIS SHOULD BE SET BEFORE THE CANVAS IS CREATED!
 
+    //   ---make paragraphs ------
     caindoReiniciar = createParagraph({
-      title: '...Clique duas vezes...',
+      title: '...Clique duas vezes...de novo...',
       position: [50, 30],
       display: 'inline-block',
     });
@@ -59,20 +60,21 @@ export default function lorenz(p) {
       position: [50, 60],
       display: 'none',
     });
-
+    //---------------
     // let container = document.getElementById('container-figure');
     // let width = container.getBoundingClientRect().width; // save initial values of width,height
     // let height = container.getBoundingClientRect().height;
     let container = p.select('#container-figure');
 
-    let myCanvas = p.createCanvas(container.width, container.height, p.WEBGL);
-    myCanvas.parent('container-figure');
+    let canvas = p.createCanvas(container.width, container.height, p.WEBGL);
+    canvas.parent('container-figure');
+    //canvas.mouseOver(mouseOver);
 
     //---video recorder-------
 
     videoRecorder = new p5.VideoRecorder([
       mic.output,
-      myCanvas.elt,
+      canvas.elt,
       audio.output,
     ]);
     videoRecorder.onFileReady = showAndSaveVideo;
@@ -94,14 +96,16 @@ export default function lorenz(p) {
 
     p.angleMode(p.RADIANS); // p.angleMode(p.DEGREES);
 
-    // color mode hue, saturation, bright
-
     bgColor = p.color(240, 248, 255); // background color, alice blue in RGB
     bgColor.setAlpha(0); // set transparency color....no background color
     p.background(bgColor); // transparent background
 
     let currentPoint = initial_random();
+    let offset = new p5.Vector(0.2, 0.2, 0);
+    let currentPoint2 = p5.Vector.add(currentPoint, offset);
+
     trajectory = new Trajectory([currentPoint]);
+    trajectory2 = new Trajectory([currentPoint2]);
 
     //p.noLoop();
   };
@@ -121,65 +125,67 @@ export default function lorenz(p) {
 
     //p.orbitControl();  // not really working.....
 
-    if (wiggleTrajectory) {
-      trajectory.wiggle();
-      trajectory.show();
-    }
-
     //-------faz o titulo como testura sobre um plano------
     // titlebox.texture(tela_textura);
     // titlebox.plane(400, 100);
     //---------------------------------------------------
     //acelera plot
-    let rate = Math.floor(p.map(count, 0, maxIterations, 1, 6));
+    let rate = Math.floor(p.map(count, 0, maxIterations, 2, 8));
 
     for (let i = 0; i < rate; i++) {
       trajectory.nextPoint();
+      trajectory2.nextPoint();
+      count++; // increment counter....
     }
 
     if (count > maxIterations / 2 && count % 3 == 0) {
       trajectory.shiftPoints(); // after maxIterations/2 points we remove a point every 3 counts
+      trajectory2.shiftPoints();
     }
 
     if (count > maxIterations) {
+      count = 0; // reinicia countador
       trajectory.restart();
+      trajectory2.restart();
     }
 
     drawAxes(70, 1); // coloca os eixos comprim=70, asas das setas = 6
     drawFloorPlane(70);
 
-    p.colorMode(p.HSB);
+    p.colorMode(p.HSB); // color mode hue, saturation, bright
     /* H = hue, between 0-360. Red = 0, green =120, blue = 240
     S = Saturation, 0% = grey version of color and 100% = rich version of color
     B = brightness, 0% = black and 100% = white if saturation = 0%, otherwise it is the brightness version of color
     */
 
-    let length = trajectory.points.length;
-    let residue = length % chunkSize;
-    let numSteps = Math.floor(length / chunkSize);
+    p.strokeWeight(0.8);
 
-    for (let i = 0; i <= numSteps; i++) {
-      //trajectory.points = lorenzPoints.slice(i);
-      p.push();
-      p.stroke((i * chunkSize + residue) % 360, 80, 50);
-      p.strokeWeight(0.8);
+    p.stroke('olive'); // first trajectory color
+    trajectory.show();
 
-      if (isFalling) {
-        trajectory.fall();
-      }
-
-      let begin = Math.max(i * chunkSize - 1, 1); // rest 1 to begin at the next point
-      let end = Math.min((i + 1) * chunkSize, trajectory.points.length);
-
-      trajectory.show(begin, end); // take chunkSize points each time and draw in random color
-
-      let long = trajectory.points.length - 1;
-      let pfinal = trajectory.points[long];
-      p.translate(pfinal);
-      p.stroke('blue');
-      p.sphere(2); // plot blue sphere at the end
-      p.pop();
+    if (isFalling) {
+      trajectory.fall(); // only the first attractor falls
     }
+
+    let long = trajectory.points.length - 1;
+    let pfinal = trajectory.points[long]; // long = count
+    p.push();
+    p.translate(pfinal);
+    p.stroke('blue');
+    p.sphere(2); // plot blue sphere at the end
+    p.pop();
+
+    p.stroke('purple');
+
+    trajectory2.show(); // plot second trajectory
+
+    long = trajectory2.points.length - 1;
+    pfinal = trajectory2.points[long];
+    p.push();
+    p.translate(pfinal);
+    p.stroke('orange');
+    p.sphere(2); // plot blue sphere at the end of 2nd trajectory
+    p.pop();
   }; //  ------end Draw()----------------------
 
   function createParagraph(options) {
@@ -191,55 +197,35 @@ export default function lorenz(p) {
   }
 
   function makeTitleAndButtons() {
-    let figura = p.select('#container-figure');
+    /* p.select is not working properly ?  */
 
-    figura.html(`<span style = "color : tomato; font-size: 40px; 
-        position: absolute; left: 68%; top: 100px; 
+    let container = document.getElementById('container-figure');
+    document.getElementById('recording').onclick = () => recording();
+    document.getElementById('stopRecord').onclick = () => stopVideo();
+    document.getElementById('musica').onclick = () => playMusic();
+
+    container.innerHTML = `<span style = "color : tomato; font-size: 40px; 
+        position: absolute; left: 58%; top: 100px; 
         background-color: transparent">
         Sala de Artes
         </span>
         <span style ="color : black; font-size: 20px;
-        position: absolute; left: 68%; top: 150px;">
+        position: absolute; left: 58%; top: 150px;">
         Semana Nacional de Ciência e Tecnologia (2022) 
-        </span>`);
+        </span>`;
 
-    let btnRecord = p
-      .createButton('Gravar Video')
-      .parent('container-figure')
-      .style('background-color: lightblue;')
-      .position(0.9 * figura.width, 0.9 * figura.height);
-
-    btnRecord.mousePressed(recording);
-
-    let btnStop = p
-      .createButton('Parar Video')
-      .parent('container-figure')
-      .style('background-color: lightblue;')
-      .position(0.9 * figura.width, 0.8 * figura.height);
-
-    btnStop.mousePressed(stopVideo);
-
-    //----------playMusic button------
-
-    let playMusic = p
-      .createButton('Musica')
-      .parent('container-figure')
-      .style('background-color: lightblue;')
-      .position(0.9 * figura.width, 0.7 * figura.height);
-
-    playMusic.mousePressed(() => {
+    function playMusic() {
       toggleMusic = !toggleMusic;
       if (toggleMusic) {
         audio.loop();
         audio.amp(0.3);
       } else if (videoRecorder.recording) {
-        console.error("Recording....music couldn't  stop.....");
+        console.error("Recording....music couldn't stop.....");
       } else {
         audio.stop();
       }
-
       p.loop();
-    });
+    }
   }
 
   function recording() {
@@ -283,13 +269,13 @@ export default function lorenz(p) {
     return new p5.Vector(px, py, pz);
   }
 
-  p.mouseOver = function () {
+  function mouseOver() {
     if (p.dist(p.mouseX, p.mouseY, p.width / 2, p.height / 2) < 200) {
       wiggleTrajectory = true;
     } else {
       wiggleTrajectory = false;
     }
-  };
+  }
 
   p.doubleClicked = function () {
     isFalling = !isFalling;
@@ -343,9 +329,8 @@ export default function lorenz(p) {
       return this;
     }
 
-    show(begin = 0, end = -1) {
-      let points = this.#points.slice(begin, end);
-
+    show() {
+      let points = this.#points; //.slice(begin, end);
       //p.normalMaterial();
       p.noFill(); // mostra atrator principal
 
@@ -390,7 +375,6 @@ export default function lorenz(p) {
     restart() {
       p.noLoop();
       let currentPoint = initial_random();
-      count = 0; // reinicia countador
       this.points = [currentPoint]; // reinicia points
       p.loop();
     }
@@ -408,7 +392,6 @@ export default function lorenz(p) {
       z = z + dz;
       let nextPoint = new p5.Vector(x, y, z); // new current position
       this.#points.push(nextPoint);
-      count++;
     }
   } // end trajectory
 
@@ -417,7 +400,7 @@ export default function lorenz(p) {
 
     p.normalMaterial();
     // yaxis-----------
-    //yaxis by definition points downwards as positive, like 2D myCanvas
+    //yaxis by definition points downwards as positive, like 2D canvas
     //p.stroke('lightgreen'); // coloring axis to see them better
     p.push();
     p.translate(0, L / 2, 0);
