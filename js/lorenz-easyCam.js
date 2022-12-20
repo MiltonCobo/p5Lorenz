@@ -33,7 +33,7 @@ export default function lorenz(p) {
     /* To play the music, it was necessary to use http://localhost:5500 as prefix */
     audio = p.loadSound(
       './sound/aSerene.mp3', //http://192.168.15.15:5500
-      () => {} //audio.loop() // callback. Play the music in localhost but in remote machine it is not playing
+      () => audio.loop() // callback. Play the music in localhost but in remote machine it is not playing
     );
 
     // this address is working on the web, but in the local machine should use localhost:5500
