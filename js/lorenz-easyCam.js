@@ -12,7 +12,7 @@ export default function lorenz(p) {
 
   let videoRecorder;
   let bgColor;
-  window.toggleMusic = false;
+  window.toggleMusic = true;
 
   let easyCam;
   let gravando; // paragraph indicating when is recording
@@ -27,13 +27,23 @@ export default function lorenz(p) {
   let audio;
   let mic;
 
+  // function playAudio() {
+  //   toggleMusic = true;
+  //   audio.loop();
+  //   audio.amp(0.3);
+  // }
+
   p.preload = function () {
     p.soundFormats('mp3', 'ogg');
     // audio = p.loadSound('http://localhost:5500/sound/aSerene.mp3');
     /* To play the music, it was necessary to use http://localhost:5500 as prefix */
     audio = p.loadSound(
       './sound/aSerene.mp3', //http://192.168.15.15:5500
-      () => audio.loop() // callback. Play the music in localhost but in remote machine it is not playing
+      () => {
+        audio.loop();
+        audio.amp(0.3);
+      }, // callback. Play the music in localhost but in remote machine it is not playing
+      console.error()
     );
 
     // this address is working on the web, but in the local machine should use localhost:5500
@@ -58,8 +68,15 @@ export default function lorenz(p) {
 
     gravando = createParagraph({
       title: '...Gravando...',
-      position: [50, 60],
+      position: [50, 140],
       display: 'none',
+    });
+
+    createParagraph({
+      title: '...Presione SHIFT para introduzir ruido...',
+      position: [50, 100],
+      display: 'inline-block',
+      fontSize: '16px',
     });
     //---------------
     // let container = document.getElementById('container-figure');
@@ -131,8 +148,8 @@ export default function lorenz(p) {
     // titlebox.plane(400, 100);
     //---------------------------------------------------
     //acelera plot
-    let rate = Math.floor(p.map(count, 0, maxIterations, 2, 8));
-
+    let rate = 2; //Math.floor(p.map(count, 0, maxIterations, 2, 4));
+    //---calculates 2 points of trajectory every time----
     for (let i = 0; i < rate; i++) {
       trajectory.nextPoint();
       trajectory2.nextPoint();
@@ -168,6 +185,10 @@ export default function lorenz(p) {
       trajectory.fall(); // only the first attractor falls
     }
 
+    if (p.keyIsDown(p.SHIFT)) {
+      trajectory.wiggle(); //  attractor wiggles when SHIFT key is pressed
+    }
+
     let long = trajectory.points.length - 1;
     let pfinal = trajectory.points[long]; // long = count
     p.push();
@@ -191,7 +212,7 @@ export default function lorenz(p) {
 
   function createParagraph(options) {
     let fontSize = options.fontSize || '30px';
-    console.log(fontSize);
+
     return p
       .createP(options.title)
       .style(`color: red; font-size: ${fontSize}; display: ${options.display};`)
@@ -274,13 +295,19 @@ export default function lorenz(p) {
     return new p5.Vector(px, py, pz);
   }
 
-  function mouseOver() {
-    if (p.dist(p.mouseX, p.mouseY, p.width / 2, p.height / 2) < 200) {
-      wiggleTrajectory = true;
-    } else {
-      wiggleTrajectory = false;
-    }
-  }
+  // function mouseOver() {
+  //   console.log('mouse over...');
+  //   wiggleTrajectory = true;
+  //   // if (
+  //   //   p.dist(p.mouseX, p.mouseY, p.windowWidth / 2, p.windowHeight / 2) < 200
+  //   // ) {
+  //   //   wiggleTrajectory = true;
+  //   // } else {
+  //   //   wiggleTrajectory = false;
+  //   // }
+
+  //   console.log('wiggle toggle =', wiggleTrajectory);
+  // }
 
   p.doubleClicked = function () {
     isFalling = !isFalling;
