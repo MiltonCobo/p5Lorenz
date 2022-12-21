@@ -26,6 +26,7 @@ export default function lorenz(p) {
   let trajectory_restarted = true;
   let audio;
   let mic;
+  let initialPositions;
 
   // function playAudio() {
   //   toggleMusic = true;
@@ -125,6 +126,25 @@ export default function lorenz(p) {
     trajectory = new Trajectory([currentPoint]);
     trajectory2 = new Trajectory([currentPoint2]);
 
+    function printVector(vector) {
+      function v(index) {
+        return vector[index].toFixed(2).toString();
+      }
+      return `[${v('x')}, ${v('y')}, ${v('z')}]`;
+    }
+
+    initialPositions = createParagraph({
+      title: `Posições Iniciais: </br> <span style = "font-size: 16px; color: blue;">Trajec1: ${printVector(
+        currentPoint
+      )}
+      </span></br> <span style = "font-size: 16px;color: blue;">Trajec2: ${printVector(
+        currentPoint2
+      )}
+      </span> `,
+      position: [50, 300],
+      display: 'inline-block',
+    });
+
     //p.noLoop();
   };
 
@@ -212,10 +232,13 @@ export default function lorenz(p) {
 
   function createParagraph(options) {
     let fontSize = options.fontSize || '30px';
+    let color = options.color || 'red';
 
     return p
       .createP(options.title)
-      .style(`color: red; font-size: ${fontSize}; display: ${options.display};`)
+      .style(
+        `color: red; font-size: ${fontSize}; display: ${options.display}; color: ${color}`
+      )
       .position(...options.position)
       .parent('#container-figure');
   }
@@ -315,6 +338,7 @@ export default function lorenz(p) {
 
     if (trajectory_restarted && !isFalling) {
       trajectory.restart();
+      initialPositions.style('display: none;');
       return;
     }
 
@@ -412,7 +436,7 @@ export default function lorenz(p) {
     }
 
     nextPoint() {
-      let currentPoint = this.#points.slice(-1)[0]; // get the last element of this.#points
+      let currentPoint = this.#points.at(-1); // get the last element of this.#points
 
       let [x, y, z] = [currentPoint.x, currentPoint.y, currentPoint.z];
 
@@ -483,9 +507,9 @@ export default function lorenz(p) {
     floorColor.setAlpha(0.8);
     //p.normalMaterial();
     p.push();
-    p.translate(0, 0, -1);
+    //p.translate(0, 0, -1);
     p.fill(floorColor);
-    p.noStroke();
+    //p.noStroke();
     p.plane(2 * L + (2 * L) / 5, 2 * L + (2 * L) / 5); // chão plano xy
     p.pop();
   }
