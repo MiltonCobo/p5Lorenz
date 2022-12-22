@@ -26,13 +26,7 @@ export default function lorenz(p) {
   let trajectory_restarted = true;
   let audio;
   let mic;
-  let initialPositions;
-
-  // function playAudio() {
-  //   toggleMusic = true;
-  //   audio.loop();
-  //   audio.amp(0.3);
-  // }
+  let initialPositions, paragraph1, paragraph2;
 
   p.preload = function () {
     p.soundFormats('mp3', 'ogg');
@@ -62,10 +56,10 @@ export default function lorenz(p) {
     //   ---make paragraphs ------
     caindoReiniciar = createParagraph({
       title: '...Clique duas vezes...de novo...',
-      position: [50, 30],
+      position: [50, 20],
       display: 'inline-block',
-      fontSize: '25px',
-    });
+      // fontSize: '1rem',
+    }).addClass('paragraph');
 
     gravando = createParagraph({
       title: '...Gravando...',
@@ -75,9 +69,9 @@ export default function lorenz(p) {
 
     createParagraph({
       title: '...Presione SHIFT para introduzir ruido...',
-      position: [50, 100],
+      position: [50, 40],
       display: 'inline-block',
-      fontSize: '16px',
+      fontSize: '0.8rem',
     });
     //---------------
     // let container = document.getElementById('container-figure');
@@ -119,6 +113,39 @@ export default function lorenz(p) {
     bgColor.setAlpha(0); // set transparency color....no background color
     p.background(bgColor); // transparent background
 
+    initialPositions = createParagraph({
+      title: 'Posições Iniciais: ',
+      position: [50, p.height - 180],
+      fontSize: '0.8rem',
+      display: 'inline-block',
+    });
+    let traj1 = createParagraph({
+      // paragraph to show initial position
+      title: 'traj 1:  ',
+      position: [50, p.height - 150],
+      fontSize: '0.8rem',
+      color: 'green',
+      display: 'inline-block',
+    });
+    let traj2 = createParagraph({
+      title: 'traj 2:  ',
+      position: [50, p.height - 120],
+      fontSize: '0.8rem',
+      color: 'green',
+      display: 'inline-block',
+    });
+    paragraph1 = createParagraph({
+      // paragraph to show initial position 1
+      title: '',
+      position: [90, p.height - 150],
+      display: 'inline-block',
+    });
+    paragraph2 = createParagraph({
+      title: '',
+      position: [90, p.height - 120],
+      display: 'inline-block',
+    });
+
     let currentPoint = initial_random();
     let offset = new p5.Vector(0.2, 0.2, 0);
     let currentPoint2 = p5.Vector.add(currentPoint, offset);
@@ -126,27 +153,21 @@ export default function lorenz(p) {
     trajectory = new Trajectory([currentPoint]);
     trajectory2 = new Trajectory([currentPoint2]);
 
-    function printVector(vector) {
-      function v(index) {
-        return vector[index].toFixed(2).toString();
-      }
-      return `[${v('x')}, ${v('y')}, ${v('z')}]`;
-    }
-
-    initialPositions = createParagraph({
-      title: `Posições Iniciais: </br> <span style = "font-size: 16px; color: blue;">Trajec1: ${printVector(
-        currentPoint
-      )}
-      </span></br> <span style = "font-size: 16px;color: blue;">Trajec2: ${printVector(
-        currentPoint2
-      )}
-      </span> `,
-      position: [50, 300],
-      display: 'inline-block',
-    });
+    //---print initial positions
+    printVector(currentPoint, paragraph1.elt);
+    printVector(currentPoint2, paragraph2.elt);
 
     //p.noLoop();
   };
+
+  function printVector(vector, element) {
+    let getCoord = (index) => vector[index].toFixed(2).toString();
+    element.style.fontSize = '0.8rem';
+    element.style.color = 'blue';
+    element.innerHTML = `[${getCoord('x')}, ${getCoord('y')}, ${getCoord(
+      'z'
+    )}]`;
+  }
 
   //-----draw() --------
 
@@ -183,8 +204,13 @@ export default function lorenz(p) {
 
     if (count > maxIterations) {
       count = 0; // reinicia countador
-      trajectory.restart();
-      trajectory2.restart();
+      let currentPoint = initial_random();
+      trajectory.restart(currentPoint);
+      let currentPoint2 = initial_random();
+      trajectory2.restart(currentPoint2);
+
+      printVector(currentPoint, paragraph1.elt);
+      printVector(currentPoint2, paragraph2.elt);
     }
 
     drawAxes(70, 1); // coloca os eixos comprim=70, asas das setas = 6
@@ -231,8 +257,8 @@ export default function lorenz(p) {
   }; //  ------end Draw()----------------------
 
   function createParagraph(options) {
-    let fontSize = options.fontSize || '30px';
-    let color = options.color || 'red';
+    let fontSize = options?.fontSize || '1rem'; // object.?prop returns undefined if not prop
+    let color = options?.color ?? 'red';
 
     return p
       .createP(options.title)
@@ -251,13 +277,13 @@ export default function lorenz(p) {
     document.getElementById('stopRecord').onclick = () => stopVideo();
     document.getElementById('musica').onclick = () => playMusic();
 
-    container.innerHTML = `<span style = "color : tomato; font-size: 40px; 
-        position: absolute; left: 58%; top: 100px; 
+    container.innerHTML = `<span style = "color : tomato; font-size: 1rem; 
+        position: absolute; left: 50%; top: 100px; 
         background-color: transparent">
         O Atrator de Lorenz
         </span>
-        <span style ="color : black; font-size: 20px;
-        position: absolute; left: 58%; top: 150px;">
+        <span style ="color : black; font-size: 0.8rem;
+        position: absolute; left: 50%; top: 150px;">
         Duas trajetórias do fluxo ilustrando o  fenômeno de </br>
         <span style ="font-weight: bold;"> sensibilidade as condições iniciais.
         </span>
@@ -337,8 +363,10 @@ export default function lorenz(p) {
     trajectory_restarted = !trajectory_restarted;
 
     if (trajectory_restarted && !isFalling) {
-      trajectory.restart();
-      initialPositions.style('display: none;');
+      let currentPoint = initial_random();
+      trajectory.restart(currentPoint);
+      printVector(currentPoint, paragraph1.elt);
+      // initialPositions.style('display: none;');
       return;
     }
 
@@ -428,9 +456,9 @@ export default function lorenz(p) {
       p.pop();
     }
 
-    restart() {
+    restart(currentPoint) {
       p.noLoop();
-      let currentPoint = initial_random();
+      // let currentPoint = initial_random();
       this.points = [currentPoint]; // reinicia points
       p.loop();
     }
