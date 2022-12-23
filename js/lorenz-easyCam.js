@@ -1,10 +1,9 @@
 //import VideoRecorder from './p5.recorder.js';
 
 export default function lorenz(p) {
-  const maxIterations = 5000; // numero total de iteracoes antes de mudar ponto inicial
+  const maxIterations = 4500; // numero total de iteracoes antes de mudar ponto inicial
   const angleCam = p.PI / 3;
   const dt = 0.003; // increment to calculate new points of trajectory. Ending in periodic orbits?....
-  // const chunkSize = 60;
 
   const a = 10;
   const b = 99.96; // parameters of Lorenz
@@ -26,7 +25,7 @@ export default function lorenz(p) {
   let trajectory_restarted = true;
   let audio;
   let mic;
-  let initialPositions, paragraph1, paragraph2;
+  let paragraph1, paragraph2;
 
   p.preload = function () {
     p.soundFormats('mp3', 'ogg');
@@ -113,29 +112,29 @@ export default function lorenz(p) {
     bgColor.setAlpha(0); // set transparency color....no background color
     p.background(bgColor); // transparent background
 
-    initialPositions = createParagraph({
+    let initialPositions = createParagraph({
       title: 'Posições Iniciais: ',
       position: [50, p.height - 180],
-      fontSize: '0.8rem',
+      fontSize: '1rem',
       display: 'inline-block',
     });
     let traj1 = createParagraph({
       // paragraph to show initial position
-      title: 'traj 1:  ',
+      title: `traj 1:  `, //   template literals will allow extra-space in firefox
       position: [50, p.height - 150],
       fontSize: '0.8rem',
       color: 'green',
       display: 'inline-block',
     });
     let traj2 = createParagraph({
-      title: 'traj 2:  ',
+      title: `traj 2:  `,
       position: [50, p.height - 120],
       fontSize: '0.8rem',
       color: 'green',
       display: 'inline-block',
     });
     paragraph1 = createParagraph({
-      // paragraph to show initial position 1
+      // paragraph to show initial position 1, accessed from outside setup()
       title: '',
       position: [90, p.height - 150],
       display: 'inline-block',
@@ -277,15 +276,15 @@ export default function lorenz(p) {
     document.getElementById('stopRecord').onclick = () => stopVideo();
     document.getElementById('musica').onclick = () => playMusic();
 
-    container.innerHTML = `<span style = "color : tomato; font-size: 1rem; 
+    container.innerHTML = `<span style = "color : tomato; font-size: 1.2rem; 
         position: absolute; left: 50%; top: 100px; 
         background-color: transparent">
         O Atrator de Lorenz
         </span>
         <span style ="color : black; font-size: 0.8rem;
-        position: absolute; left: 50%; top: 150px;">
+        position: absolute; left: 50%; top: 140px;">
         Duas trajetórias do fluxo ilustrando o  fenômeno de </br>
-        <span style ="font-weight: bold;"> sensibilidade as condições iniciais.
+        <span style ="font-weight: bold;"> sensibilidade às condições iniciais.
         </span>
         </span>`;
 
@@ -333,10 +332,10 @@ export default function lorenz(p) {
 
   function initial_random() {
     let px, py, pz;
-    let r = p.random([0, 1]); //Math.floor(Math.random()*2); // random number in {0,1}
+    let r = p.random([0, 1]);
     px = p.random(-50, 50);
     py = p.random(-50, 50);
-    if (r == 0) {
+    if (r < 0.4) {
       pz = p.random(200, 280);
     } else {
       pz = p.random(0, 30);
@@ -396,12 +395,12 @@ export default function lorenz(p) {
     }
 
     get currentPoint() {
-      return this.#points.slice(-1)[0];
+      return this.#points.at(-1);
     }
 
-    set currentPoint(point) {
-      this.#points.push(point);
-    }
+    // set currentPoint(point) {
+    //   this.#points.push(point);
+    // }
 
     set points(points) {
       this.#points = points;
